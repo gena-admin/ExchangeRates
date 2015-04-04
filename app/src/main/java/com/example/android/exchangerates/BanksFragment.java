@@ -2,18 +2,24 @@ package com.example.android.exchangerates;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -29,86 +35,115 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
-public class BanksFragment extends Fragment {
-    private ArrayAdapter<String> mForecastAdapter;
+import com.example.android.exchangerates.data.BanksContract;
+import com.example.android.exchangerates.data.BanksContract.BankEntry;
+import com.example.android.exchangerates.sync.ExchangeRatesSyncAdapter;
+
+public class BanksFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private BanksAdapter mBanksAdapter;
-    /**
-     * The fragment argument representing the section number for this
-     * fragment.
-     */
-//    private static final String ARG_SECTION_NUMBER = "section_number";
-//
-//    /**
-//     * Returns a new instance of this fragment for the given section
-//     * number.
-//     */
-//    public static BanksFragment newInstance(int sectionNumber) {
-//        BanksFragment fragment = new BanksFragment();
-//        Bundle args = new Bundle();
-//        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-//        fragment.setArguments(args);
-//        return fragment;
-//    }
+    private ListView mListView;
+    private int mPosition = ListView.INVALID_POSITION;
+    private static final String SELECTED_KEY = "selected_position";
+
+    private static final int BANKS_LOADER = 0;
+    private final String UPDATE_DATE = "update_date";
+
+    private static final String[] BANK_COLUMNS = {
+            BanksContract.BankEntry.TABLE_NAME + "." + BanksContract.BankEntry._ID,
+            BankEntry.COLUMN_BANK_NAME,
+            BankEntry.COLUMN_BANK_OLD_ID,
+    };
+    static final int COL_BANK_OLD_ID = 2;
+
+
+    public interface Callback {
+        public void onItemSelected(Uri dateUri);
+    }
 
     public BanksFragment() {
     }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(BANKS_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        ArrayList<String> forecastList = new ArrayList<String>() {{
-            add("Today - Sunny- 88/63");
-            add("Tomorrow - Foggy - 70/46");
-            add("Weds - Claudy - 72/63 ");
-            add("Thurs - Rainy - 64/51 ");
-            add("Fri - Foggy - 70/46 ");
-            add("Sat - Sanny - 76/68 ");
-        }};
+        mBanksAdapter = new BanksAdapter(getActivity(), null, 0);
+        mListView = (ListView) rootView.findViewById(R.id.listview_banks);
+        ExchangeRatesSyncAdapter.syncImmediately(getActivity());
 
-//        mBanksAdapter = new BanksAdapter(getActivity(), null, 0);
-
-
-        mForecastAdapter = new ArrayAdapter<String>(getActivity(),
-                R.layout.list_item_bank,
-                R.id.list_item_bank_textview,
-                forecastList);
-
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_banks);
-//        listView.setAdapter(mForecastAdapter);
-
-        listView.setAdapter(mForecastAdapter);
-
-
-        new FetchBanksTask(getActivity(), mForecastAdapter).execute("94043");
-
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setAdapter(mBanksAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                // CursorAdapter returns a cursor at the correct position for getItem(), or null
-                // if it cannot seek to that position.
-//                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-//                if (cursor != null) {
-//                    String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Intent intent = new Intent(getActivity(), DetailActivity.class).putExtra("index", Integer.toString(position));
-                    startActivity(intent);
-//                }
+                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+                if (cursor != null) {
+                    ((Callback) getActivity())
+                            .onItemSelected(BankEntry
+                                    .buildBankWithRates(cursor.getString(COL_BANK_OLD_ID)));
+                }
+                mPosition = position;
             }
         });
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
 
         return rootView;
     }
 
-//    @Override
-//    public void onAttach(Activity activity) {
-//        super.onAttach(activity);
-//        ((MainActivity) activity).onSectionAttached(
-//                getArguments().getInt(ARG_SECTION_NUMBER));
-//    }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+        super.onSaveInstanceState(outState);
+    }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Uri banksUri = BankEntry.buildAllBanks();
 
+        return new CursorLoader(getActivity(),
+                banksUri,
+                BANK_COLUMNS,
+                null,
+                null,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        mBanksAdapter.swapCursor(cursor);
+
+        SharedPreferences prefs = getActivity().getSharedPreferences(UPDATE_DATE, getActivity().MODE_PRIVATE);
+        String updateDate = prefs.getString(UPDATE_DATE, "");
+
+        getActivity().setTitle(updateDate);
+        if (mPosition != ListView.INVALID_POSITION) {
+            mListView.smoothScrollToPosition(mPosition);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        mBanksAdapter.swapCursor(null);
+    }
 
 
 }
