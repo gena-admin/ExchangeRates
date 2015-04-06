@@ -1,16 +1,18 @@
-package com.example.android.exchangerates;
+package com.example.android.exchangerates.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.exchangerates.R;
 import com.example.android.exchangerates.Utility;
+import com.example.android.exchangerates.fragment.BanksFragment;
+import com.example.android.exchangerates.fragment.DetailFragment;
 
 /**
  * Created by gena on 23.03.15.

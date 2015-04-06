@@ -1,45 +1,29 @@
-package com.example.android.exchangerates;
+package com.example.android.exchangerates.fragment;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-
+import com.example.android.exchangerates.R;
+import com.example.android.exchangerates.adapter.BanksAdapter;
 import com.example.android.exchangerates.data.BanksContract;
 import com.example.android.exchangerates.data.BanksContract.BankEntry;
-import com.example.android.exchangerates.sync.ExchangeRatesSyncAdapter;
 
 public class BanksFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    private static final String TAG = BanksFragment.class.getSimpleName();
     private BanksAdapter mBanksAdapter;
     private ListView mListView;
     private int mPosition = ListView.INVALID_POSITION;
@@ -53,7 +37,7 @@ public class BanksFragment extends Fragment implements LoaderManager.LoaderCallb
             BankEntry.COLUMN_BANK_NAME,
             BankEntry.COLUMN_BANK_OLD_ID,
     };
-    static final int COL_BANK_OLD_ID = 2;
+    public static final int COL_BANK_OLD_ID = 2;
 
 
     public interface Callback {
@@ -76,17 +60,10 @@ public class BanksFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onActivityCreated(savedInstanceState);
     }
 
-
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        mBanksAdapter = new BanksAdapter(getActivity(), null, 0);
-        mListView = (ListView) rootView.findViewById(R.id.listview_banks);
-        ExchangeRatesSyncAdapter.syncImmediately(getActivity());
-
-        mListView.setAdapter(mBanksAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -103,6 +80,17 @@ public class BanksFragment extends Fragment implements LoaderManager.LoaderCallb
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             mPosition = savedInstanceState.getInt(SELECTED_KEY);
         }
+
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        mBanksAdapter = new BanksAdapter(getActivity(), null, 0);
+        mListView = (ListView) rootView.findViewById(R.id.listview_banks);
+        mListView.setAdapter(mBanksAdapter);
 
         return rootView;
     }
@@ -129,6 +117,7 @@ public class BanksFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        Log.v(TAG, "In onLoadFinished BanksFragment");
         mBanksAdapter.swapCursor(cursor);
 
         SharedPreferences prefs = getActivity().getSharedPreferences(UPDATE_DATE, getActivity().MODE_PRIVATE);
@@ -138,6 +127,17 @@ public class BanksFragment extends Fragment implements LoaderManager.LoaderCallb
         if (mPosition != ListView.INVALID_POSITION) {
             mListView.smoothScrollToPosition(mPosition);
         }
+        else {
+            if ((getActivity().findViewById(R.id.rate_detail_container) != null) && (cursor.getCount() != 0 )) {
+                new Handler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mListView.setItemChecked(0, true);
+                        mListView.performItemClick(mListView.getChildAt(0), 0, mListView.getItemIdAtPosition(0));
+                    }
+                });
+            }
+        }
     }
 
     @Override
@@ -145,5 +145,6 @@ public class BanksFragment extends Fragment implements LoaderManager.LoaderCallb
         mBanksAdapter.swapCursor(null);
     }
 
-
 }
+
+

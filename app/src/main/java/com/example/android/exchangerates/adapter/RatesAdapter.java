@@ -1,4 +1,4 @@
-package com.example.android.exchangerates;
+package com.example.android.exchangerates.adapter;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -9,12 +9,16 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.exchangerates.R;
+import com.example.android.exchangerates.Utility;
+import com.example.android.exchangerates.fragment.DetailFragment;
+
 /**
  * Created by gena on 23.03.15.
  */
 
 /**
- * {@link com.example.android.exchangerates.RatesAdapter} exposes a list of weather forecasts
+ * {@link RatesAdapter} exposes a list of weather forecasts
  * from a {@link android.database.Cursor} to a {@link android.widget.ListView}.
  */
 public class RatesAdapter extends CursorAdapter {

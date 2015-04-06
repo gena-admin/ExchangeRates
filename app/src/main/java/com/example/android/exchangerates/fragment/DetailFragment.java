@@ -1,13 +1,11 @@
-package com.example.android.exchangerates;
+package com.example.android.exchangerates.fragment;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -21,12 +19,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.android.exchangerates.R;
+import com.example.android.exchangerates.Utility;
+import com.example.android.exchangerates.adapter.RatesAdapter;
 import com.example.android.exchangerates.data.BanksContract;
 
 
@@ -38,11 +38,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private static final String EXCHANGERATES_SHARE_HASHTAG = " #ExchangeRatesApp: I like the bank";
     private static final int DETAIL_LOADER = 0;
     private final String BANK_ADDRESS = "bank_address";
-    static final String DETAIL_URI = "URI";
+    public static final String DETAIL_URI = "URI";
     static String mbankName = "";
     private Uri mUri;
     private ImageButton mMapButton;
     private RatesAdapter mRatesAdapter;
+    private ShareActionProvider mShareActionProvider;
 
     private static final String[] BANKS_COLUMNS = {
             BanksContract.BankEntry.TABLE_NAME + "." + BanksContract.BankEntry._ID,
@@ -54,12 +55,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             BanksContract.BankEntry.COLUMN_BANK_ADDRESS
     };
 
-    static final int COL_BANK_NAME = 1;
-    static final int COL_BANK_OLD_ID = 2;
-    static final int COL_RATE_CURRENCY = 3;
-    static final int COL_RATE_ASK = 4;
-    static final int COL_RATE_BID = 5;
-    static final int COL_BANK_ADDRESS = 6;
+    public static final int COL_BANK_NAME = 1;
+    public static final int COL_BANK_OLD_ID = 2;
+    public static final int COL_RATE_CURRENCY = 3;
+    public static final int COL_RATE_ASK = 4;
+    public static final int COL_RATE_BID = 5;
+    public static final int COL_BANK_ADDRESS = 6;
 
     public DetailFragment() {
         setHasOptionsMenu(true);
@@ -67,21 +68,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
-        }
-
-        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-
-        mRatesAdapter = new RatesAdapter(getActivity(), null, 0);
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_rates);
-        listView.setAdapter(mRatesAdapter);
-
-        mMapButton = (ImageButton) rootView.findViewById(R.id.mapButton);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mMapButton = (ImageButton) view.findViewById(R.id.mapButton);
         mMapButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 SharedPreferences prefs = getActivity().getSharedPreferences(BANK_ADDRESS, getActivity().MODE_PRIVATE);
@@ -99,6 +88,21 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             }
         });
 
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
+        }
+
+        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        mRatesAdapter = new RatesAdapter(getActivity(), null, 0);
+        ListView listView = (ListView) rootView.findViewById(R.id.listview_rates);
+        listView.setAdapter(mRatesAdapter);
+
         return rootView;
     }
 
@@ -112,16 +116,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.detailfragment, menu);
         MenuItem menuItem = menu.findItem(R.id.action_share);
-        ShareActionProvider mShareActionProvider =
+        mShareActionProvider =
                 (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
-        if (mShareActionProvider != null) {
-            mShareActionProvider.setShareIntent(createShareForecastIntent());
-        } else {
-            Log.d(TAG, "Share Action Provider is null?");
-        }
     }
 
-    private Intent createShareForecastIntent() {
+    private Intent createShareBankIntent() {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         shareIntent.setType("text/plain");
@@ -147,7 +146,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        Log.v(TAG, "In onLoadFinished");
+        Log.v(TAG, "In onLoadFinished DetailFragment");
         if (!cursor.moveToFirst()) {
             return;
         }
@@ -158,6 +157,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         SharedPreferences.Editor sharedPrefs = getActivity().getSharedPreferences(BANK_ADDRESS, getActivity().MODE_PRIVATE).edit();
         sharedPrefs.putString(BANK_ADDRESS, bankAddress);
         sharedPrefs.commit();
+
+        if (mShareActionProvider != null) {
+            mShareActionProvider.setShareIntent(createShareBankIntent());
+        } else {
+            Log.d(TAG, "Share Action Provider is null?");
+        }
+
         TextView bankNameTextView = (TextView) getView().findViewById(R.id.bank_name);
         bankNameTextView.setText(bankName);
         ImageView bankIconView = (ImageView) getView().findViewById(R.id.bank_icon);

@@ -1,14 +1,10 @@
-package com.example.android.exchangerates;
+package com.example.android.exchangerates.activity;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
+
+import com.example.android.exchangerates.R;
+import com.example.android.exchangerates.fragment.DetailFragment;
 
 
 /**

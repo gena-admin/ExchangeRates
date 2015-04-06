@@ -12,7 +12,6 @@ import android.content.SyncRequest;
 import android.content.SyncResult;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.format.DateFormat;
 import android.util.Log;
 
 import com.example.android.exchangerates.R;
@@ -233,6 +232,7 @@ public class ExchangeRatesSyncAdapter extends AbstractThreadedSyncAdapter {
             if (!accountManager.addAccountExplicitly(newAccount, "", null)) {
                 return null;
             }
+            onAccountCreated(newAccount, context);
         }
         return newAccount;
     }

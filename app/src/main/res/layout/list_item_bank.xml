@@ -21,22 +21,16 @@
             android:src="@drawable/bank_default" />
     </FrameLayout>
 
-    <LinearLayout
-        android:layout_width="0dp"
+    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/list_item_bank_textview"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="7"
-        android:orientation="vertical">
-
-        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/list_item_bank_textview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-condensed"
-            android:gravity="center_vertical"
-            android:minHeight="?android:attr/listPreferredItemHeight"
-            android:text="Bank Name"
-            android:textSize="20sp" />
-    </LinearLayout>
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center_vertical"
+        android:minHeight="?android:attr/listPreferredItemHeight"
+        android:text="Bank Name"
+        android:textSize="20sp" />
 
 </LinearLayout>
 

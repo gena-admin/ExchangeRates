@@ -1,10 +1,7 @@
 package com.example.android.exchangerates.data;
 
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import android.text.format.Time;
 
 /**
  * Created by gena on 24.03.15.

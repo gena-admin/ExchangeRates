@@ -13,9 +13,9 @@ import com.example.android.exchangerates.data.BanksContract.RateEntry;
  */
 public class BanksDbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 1;
 
-    static final String DATABASE_NAME = "banks_5510.db";
+    static final String DATABASE_NAME = "banks.db";
 
     public BanksDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

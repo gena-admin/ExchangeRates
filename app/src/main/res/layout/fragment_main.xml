@@ -2,13 +2,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.android.exchangerates.BanksFragment">
+    tools:context="com.example.android.exchangerates.fragment.BanksFragment">
 
     <ListView
         android:id="@+id/listview_banks"
         style="@style/BankListStyle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="@null"/>
+        android:divider="@null"
+        android:listSelector="@null" />
 
 </RelativeLayout>
